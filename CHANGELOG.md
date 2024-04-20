@@ -5,3 +5,7 @@
 ## 0.0.2
 
 * Readme updated.
+
+## 0.0.2
+
+* minor bug fixes
