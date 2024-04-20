@@ -6,6 +6,6 @@
 
 * Readme updated.
 
-## 0.0.2
+## 0.0.3
 
 * minor bug fixes
