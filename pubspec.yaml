@@ -1,6 +1,6 @@
 name: see_more
 description: "A flutter package for view more text."
-version: 0.0.3
+version: 0.0.5
 homepage: https://github.com/igloodev/see_more
 
 environment:

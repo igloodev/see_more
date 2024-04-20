@@ -53,7 +53,6 @@ SeeMoreWidget(
             ),
 ```
 
-
-https://github.com/igloodev/see_more/assets/35443097/f20a3f37-dba1-4267-a5db-c3df7cd36c52
+![video](https://github.com/igloodev/see_more/assets/35443097/f20a3f37-dba1-4267-a5db-c3df7cd36c52)
 
 
