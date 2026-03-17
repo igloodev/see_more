@@ -1,0 +1,30 @@
+# Include everything from .gitignore
+.DS_Store
+*.log
+.idea/
+*.iml
+*.ipr
+*.iws
+.dart_tool/
+.packages
+build/
+pubspec.lock
+doc/api/
+.env*
+*.dart.js
+*.info.json
+*.js
+*.js_
+*.js.deps
+*.js.map
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Example platform-specific files (not needed for pub.dev)
+example/android/
+example/ios/
+example/linux/
+example/macos/
+example/windows/
+example/web/
+example/test/
