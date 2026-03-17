@@ -1,11 +1,11 @@
 name: see_more
-description: "A flutter package for view more text."
-version: 0.0.5
+description: "Expandable text widget with See More/Less, line-based trimming, Instagram-style fade effect, and smooth animations. Perfect for social media posts."
+version: 1.0.0
 homepage: https://github.com/igloodev/see_more
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
-  flutter: ">=1.17.0"
+  flutter: ">=3.16.0"
 
 dependencies:
   flutter:
@@ -14,7 +14,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
