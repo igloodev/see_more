@@ -30,6 +30,15 @@ class ExamplePage extends StatefulWidget {
 }
 
 class _ExamplePageState extends State<ExamplePage> {
+  // ── SeeMoreController ──────────────────────────────────────────────────────
+  final SeeMoreController _controller = SeeMoreController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   final String _longText =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
       "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, "
@@ -222,6 +231,77 @@ class _ExamplePageState extends State<ExamplePage> {
                 _longText,
                 maxCharacters: 50,
                 trimAtWordBoundary: false,
+              ),
+            ),
+
+            // 15. TrimMode.word (new)
+            _buildSection(
+              title: '15. Word-based Trimming (10 words)',
+              child: SeeMoreWidget(
+                _longText,
+                trimMode: TrimMode.word,
+                maxWords: 10,
+              ),
+            ),
+
+            // 16. SeeMoreController — programmatic expand/collapse (new)
+            _buildSection(
+              title: '16. Programmatic Control (SeeMoreController)',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SeeMoreWidget(
+                    _longText,
+                    maxCharacters: 100,
+                    controller: _controller,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: _controller.expand,
+                        child: const Text('Expand'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: _controller.collapse,
+                        child: const Text('Collapse'),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: _controller.toggle,
+                        child: const Text('Toggle'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 17. Custom button builders (new)
+            _buildSection(
+              title: '17. Custom Button Builders',
+              child: SeeMoreWidget(
+                _longText,
+                maxCharacters: 100,
+                expandButtonBuilder: (context, onTap) => TextButton.icon(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.expand_more, size: 18),
+                  label: const Text('Show more'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.deepPurple,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                collapseButtonBuilder: (context, onTap) => TextButton.icon(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.expand_less, size: 18),
+                  label: const Text('Show less'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.deepOrange,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
               ),
             ),
 

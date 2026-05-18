@@ -1,3 +1,46 @@
+## 2.0.0
+
+### Breaking Changes
+* `TrimMode` enum now has three values: `character`, `line`, and `word`.
+  Any exhaustive `switch` on `TrimMode` in consumer code must add a `word` case.
+
+### New Features
+* **`SeeMoreController`** — programmatic expand/collapse from outside the widget.
+  Supports `expand()`, `collapse()`, and `toggle()`. Keeps the widget in sync
+  with tap-based interactions and fires `onExpand`/`onCollapse` callbacks.
+  ```dart
+  final ctrl = SeeMoreController();
+  SeeMoreWidget("...", controller: ctrl)
+  ctrl.expand();
+  ```
+* **`TrimMode.word`** — trim by word count instead of characters or lines.
+  Controlled by the new `maxWords` parameter (default `50`).
+  ```dart
+  SeeMoreWidget("...", trimMode: TrimMode.word, maxWords: 30)
+  ```
+* **`expandButtonBuilder`** — replace the default "See More" span with any widget.
+  The builder receives `(BuildContext context, VoidCallback onTap)`.
+* **`collapseButtonBuilder`** — same for the "See Less" affordance.
+  Can be set independently of `expandButtonBuilder`.
+
+### Improvements
+* Line-mode TextPainter result is now cached on a `_LineTrimKey` record.
+  Repeated builds that don't change text, style, or constraints skip the
+  layout pass entirely.
+* `fadeColor` default changed from `scaffoldBackgroundColor` to
+  `colorScheme.surface`, matching the visible container background in Cards,
+  Dialogs, and other surfaces.
+* Inline "See More" / "See Less" `TextSpan`s now carry `semanticsLabel` so
+  screen readers announce the label without the leading visual-spacing space.
+* Default expand button (fade mode) is now wrapped in `Semantics(button: true)`
+  so assistive technologies identify it as an interactive control.
+* `expandButtonSpacing` is now validated to be `>= 0`.
+* Regex patterns used in trim helpers are compiled once as `static final`
+  constants instead of on every call.
+* Source split into focused `part` files:
+  `see_more_state.dart`, `see_more_builders.dart`, `see_more_constants.dart`.
+* Tests reorganised into focused files under `test/` (74 tests total).
+
 ## 1.0.0
 
 ### Breaking Changes

@@ -1,6 +1,6 @@
 name: see_more
-description: "Expandable text widget with See More/Less, line-based trimming, Instagram-style fade effect, and smooth animations. Perfect for social media posts."
-version: 1.0.0
+description: "Expandable text widget with See More/Less, character/line/word trimming, programmatic SeeMoreController, custom button builders, fade effect, and smooth animations."
+version: 2.0.0
 homepage: https://github.com/igloodev/see_more
 
 environment:
