@@ -28,4 +28,7 @@ example/macos/
 example/windows/
 example/web/
 example/test/
+example/pubspec.yaml
+example/analysis_options.yaml
+example/README.md
 test/
