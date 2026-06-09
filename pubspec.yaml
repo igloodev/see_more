@@ -1,6 +1,6 @@
 name: see_more
-description: "Expandable text widget with See More/Less, character/line/word trimming, programmatic SeeMoreController, custom button builders, fade effect, and smooth animations."
-version: 2.0.0
+description: "Expandable text widget with See More/Less, character/line/word trimming, rich InlineSpan support, auto URL linkification, selectable text, programmatic SeeMoreController, custom button builders, fade effect, and smooth animations."
+version: 2.1.0
 homepage: https://github.com/igloodev/see_more
 
 environment:

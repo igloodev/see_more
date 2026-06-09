@@ -5,6 +5,9 @@ An expandable text widget for Flutter with smooth animations, programmatic contr
 ## Features
 
 - **Three trim modes** — character-based, line-based, or word-count-based trimming
+- **Rich text support** — `SeeMoreWidget.rich(InlineSpan)` preserves nested styles, recognizers, and `WidgetSpan` icons across truncation
+- **Auto URL linkification** — `linkify: true` detects `http(s)://` URLs and renders each as a tappable styled span; wire `onLinkTap` to any handler
+- **Selectable text** — `selectable: true` wraps content in `SelectionArea` so users can long-press to select and copy
 - **`SeeMoreController`** — expand, collapse, or toggle from anywhere in your code
 - **Custom button builders** — replace the default "See More" / "See Less" with any widget
 - **Fade effect** — gradient fade at text end (like Instagram / Twitter)
@@ -20,7 +23,7 @@ An expandable text widget for Flutter with smooth animations, programmatic contr
 
 ```yaml
 dependencies:
-  see_more: ^2.0.0
+  see_more: ^2.1.0
 ```
 
 ## Usage
@@ -123,6 +126,71 @@ SeeMoreWidget(
 Custom builders are rendered **below the text** (never inline). They can be
 set independently — e.g. a custom expand button with the default collapse span.
 
+### Rich text (mixed styles, inline icons, tappable mentions)
+
+```dart
+SeeMoreWidget.rich(
+  TextSpan(children: [
+    const TextSpan(text: 'Hello, '),
+    TextSpan(
+      text: 'world',
+      style: const TextStyle(fontWeight: FontWeight.bold),
+    ),
+    const TextSpan(text: '! Visit '),
+    TextSpan(
+      text: 'flutter.dev',
+      style: const TextStyle(color: Colors.blue),
+      recognizer: TapGestureRecognizer()..onTap = _openLink,
+    ),
+    const TextSpan(text: ' for more info.'),
+  ]),
+  trimMode: TrimMode.character,
+  maxCharacters: 30,
+)
+```
+
+Styles, tap recognizers, and `WidgetSpan` icons are preserved when the text
+is truncated mid-span — the visible prefix keeps its formatting.
+
+### Auto URL detection
+
+```dart
+SeeMoreWidget(
+  'Visit https://flutter.dev to learn more about Flutter.',
+  linkify: true,
+  onLinkTap: (url) => launchUrl(Uri.parse(url)),  // wire your url_launcher
+)
+```
+
+Customise the link style or detection pattern:
+
+```dart
+SeeMoreWidget(
+  'Email me at mailto:hello@example.com please.',
+  linkify: true,
+  urlPattern: RegExp(r'mailto:\S+'),
+  linkStyle: const TextStyle(color: Colors.green, decoration: TextDecoration.underline),
+  onLinkTap: (url) => /* ... */,
+)
+```
+
+`linkify` works equally well with `SeeMoreWidget.rich`. URLs that span across
+multiple child spans are not detected — keep each URL contiguous in a single
+`TextSpan.text`.
+
+### Selectable text
+
+```dart
+SeeMoreWidget(
+  "Long content that users may want to copy...",
+  selectable: true,
+)
+```
+
+Wraps the rendered content in a `SelectionArea`. Long-press to select, then
+copy via the platform menu. Inline expand/collapse and link taps remain
+fully functional inside the selection region.
+
 ### Full customisation
 
 ```dart
@@ -171,7 +239,13 @@ SeeMoreWidget(
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `text` | `String` | required | Text content to display |
+| `text` | `String?` | required (default ctor) | Plain-text content. Required by the default `SeeMoreWidget(...)` constructor; `null` when using `SeeMoreWidget.rich(...)` |
+| `textSpan` | `InlineSpan?` | required (`.rich`) | Rich span tree. Required by `SeeMoreWidget.rich(...)`; `null` when using the default constructor |
+| `linkify` | `bool` | `false` | Auto-detect URLs in the content and render each as a tappable styled span |
+| `urlPattern` | `RegExp?` | `https?://...` | Custom URL detection pattern for `linkify` (e.g. for `mailto:` support) |
+| `linkStyle` | `TextStyle?` | Material Blue 700 + underline | Style applied to detected URLs |
+| `onLinkTap` | `void Function(String url)?` | `null` | Called with the matched URL when the user taps a detected link. Wire to `url_launcher` or any custom handler |
+| `selectable` | `bool` | `false` | Wraps the content in `SelectionArea` so users can long-press to select and copy |
 | `trimMode` | `TrimMode` | `character` | `character`, `line`, or `word` |
 | `maxCharacters` | `int` | `240` | Max characters before truncation (`character` mode) |
 | `maxLines` | `int` | `3` | Max lines before truncation (`line` mode) |

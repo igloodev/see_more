@@ -21,4 +21,23 @@ abstract class _SeeMoreConstants {
   // Compiled once and reused across all trim calls.
   static final RegExp whitespace = RegExp(r'\s');
   static final RegExp whitespaces = RegExp(r'\s+');
+
+  /// Default URL detection pattern used when [SeeMoreWidget.linkify] is `true`
+  /// and no custom [SeeMoreWidget.urlPattern] is supplied. Matches `http(s)://`
+  /// followed by any non-whitespace, non-bracket character. Common sentence
+  /// punctuation (`. , ; : ! ? ) ] } >`) is stripped from the end of each
+  /// match *after* the regex runs, so a URL at the end of a sentence isn't
+  /// swallowed by the period.
+  static final RegExp defaultUrlPattern = RegExp(
+    r'https?://[^\s<>"]+',
+    caseSensitive: false,
+  );
+
+  /// Fallback style applied to detected links when no [SeeMoreWidget.linkStyle]
+  /// is provided. Material Blue 700 + underline reads as a link without
+  /// pulling in Theme.of(context) (linkification runs outside build()).
+  static const TextStyle defaultLinkStyle = TextStyle(
+    color: Color(0xFF1976D2),
+    decoration: TextDecoration.underline,
+  );
 }

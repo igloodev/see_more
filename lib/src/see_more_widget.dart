@@ -7,6 +7,7 @@ import 'trim_mode.dart';
 part 'see_more_constants.dart';
 part 'see_more_state.dart';
 part 'see_more_builders.dart';
+part 'span_utils.dart';
 
 /// A widget that displays text with expandable/collapsible "See More" functionality.
 ///
@@ -46,7 +47,7 @@ part 'see_more_builders.dart';
 /// )
 /// ```
 class SeeMoreWidget extends StatefulWidget {
-  /// Creates a SeeMoreWidget.
+  /// Creates a SeeMoreWidget from a plain [String].
   ///
   /// The [text] parameter must not be empty.
   ///
@@ -55,8 +56,11 @@ class SeeMoreWidget extends StatefulWidget {
   /// When [trimMode] is [TrimMode.word],      [maxWords]      must be > 0.
   ///
   /// [fadeHeight] must be > 0 when [showFadeEffect] is true.
+  ///
+  /// For mixed-style text, hyperlinks, mentions, or hashtags use
+  /// [SeeMoreWidget.rich] instead.
   const SeeMoreWidget(
-    this.text, {
+    String this.text, {
     super.key,
     this.controller,
     this.textStyle,
@@ -84,7 +88,98 @@ class SeeMoreWidget extends StatefulWidget {
     this.expandButtonSpacing = _SeeMoreConstants.fadeButtonSpacing,
     this.expandButtonBuilder,
     this.collapseButtonBuilder,
-  })  : assert(text != '', 'text must not be empty'),
+    this.linkify = false,
+    this.urlPattern,
+    this.linkStyle,
+    this.onLinkTap,
+    this.selectable = false,
+  })  : textSpan = null,
+        assert(text != '', 'text must not be empty'),
+        assert(
+          trimMode != TrimMode.character || maxCharacters > 0,
+          'maxCharacters must be greater than 0 when trimMode is TrimMode.character',
+        ),
+        assert(
+          trimMode != TrimMode.line || maxLines > 0,
+          'maxLines must be greater than 0 when trimMode is TrimMode.line',
+        ),
+        assert(
+          trimMode != TrimMode.word || maxWords > 0,
+          'maxWords must be greater than 0 when trimMode is TrimMode.word',
+        ),
+        assert(
+          !showFadeEffect || fadeHeight > 0,
+          'fadeHeight must be greater than 0 when showFadeEffect is true',
+        ),
+        assert(expandText != '', 'expandText must not be empty'),
+        assert(collapseText != '', 'collapseText must not be empty'),
+        assert(
+          expandButtonSpacing >= 0,
+          'expandButtonSpacing must be >= 0',
+        );
+
+  /// Creates a SeeMoreWidget from a rich [InlineSpan] tree.
+  ///
+  /// Use this constructor when the content needs mixed styles, hyperlinks,
+  /// inline icons via [WidgetSpan], or tappable mentions/hashtags. Styles,
+  /// recognizers, and semantics are preserved across truncation — when the
+  /// text is trimmed mid-span the resulting prefix still wears the original
+  /// style and remains tappable.
+  ///
+  /// [WidgetSpan] counts as one character for all trim modes (matching
+  /// Flutter's text-layout convention).
+  ///
+  /// Example:
+  /// ```dart
+  /// SeeMoreWidget.rich(
+  ///   TextSpan(children: [
+  ///     const TextSpan(text: 'Check out '),
+  ///     TextSpan(
+  ///       text: 'flutter.dev',
+  ///       style: const TextStyle(color: Colors.blue),
+  ///       recognizer: TapGestureRecognizer()..onTap = _openLink,
+  ///     ),
+  ///     const TextSpan(text: ' for more.'),
+  ///   ]),
+  ///   trimMode: TrimMode.character,
+  ///   maxCharacters: 20,
+  /// )
+  /// ```
+  const SeeMoreWidget.rich(
+    InlineSpan this.textSpan, {
+    super.key,
+    this.controller,
+    this.textStyle,
+    this.animationDuration = const Duration(milliseconds: 200),
+    this.animationCurve = Curves.easeInOut,
+    this.expandText = 'See More',
+    this.expandTextStyle,
+    this.collapseText = 'See Less',
+    this.collapseTextStyle,
+    this.maxCharacters = 240,
+    this.maxLines = 3,
+    this.maxWords = 50,
+    this.trimMode = TrimMode.character,
+    this.textAlign = TextAlign.start,
+    this.textDirection,
+    this.initiallyExpanded = false,
+    this.ellipsis = '...',
+    this.onExpand,
+    this.onCollapse,
+    this.trimAtWordBoundary = true,
+    this.showFadeEffect = false,
+    this.fadeHeight = 60.0,
+    this.fadeColor,
+    this.textScaler,
+    this.expandButtonSpacing = _SeeMoreConstants.fadeButtonSpacing,
+    this.expandButtonBuilder,
+    this.collapseButtonBuilder,
+    this.linkify = false,
+    this.urlPattern,
+    this.linkStyle,
+    this.onLinkTap,
+    this.selectable = false,
+  })  : text = null,
         assert(
           trimMode != TrimMode.character || maxCharacters > 0,
           'maxCharacters must be greater than 0 when trimMode is TrimMode.character',
@@ -110,8 +205,13 @@ class SeeMoreWidget extends StatefulWidget {
 
   // ── Core ─────────────────────────────────────────────────────────────────────
 
-  /// The text content to display.
-  final String text;
+  /// The plain-text content. Non-null when constructed via [SeeMoreWidget.new];
+  /// null when constructed via [SeeMoreWidget.rich].
+  final String? text;
+
+  /// The rich span tree. Non-null when constructed via [SeeMoreWidget.rich];
+  /// null when constructed via [SeeMoreWidget.new].
+  final InlineSpan? textSpan;
 
   // ── Programmatic control ──────────────────────────────────────────────────────
 
@@ -240,6 +340,50 @@ class SeeMoreWidget extends StatefulWidget {
 
   /// Called when the text is collapsed (by user tap or controller).
   final VoidCallback? onCollapse;
+
+  // ── Linkify ───────────────────────────────────────────────────────────────────
+
+  /// Whether to auto-detect URLs in the content and render each as a
+  /// tappable span. Works with both the default and [SeeMoreWidget.rich]
+  /// constructors. When `true`, the content is converted into a rich span
+  /// tree internally and styles / recognizers from the original tree are
+  /// preserved across detected URLs.
+  ///
+  /// **Limitation — URLs split across child spans are not detected.**
+  /// Detection runs per-[TextSpan]: each span's `text` is scanned in
+  /// isolation, so a URL written as
+  /// `TextSpan(children: [TextSpan('https://'), TextSpan('flutter.dev')])`
+  /// is silently skipped. To linkify such content, either pass the URL as
+  /// contiguous text in a single span, or pre-process the content before
+  /// passing it to [SeeMoreWidget.rich].
+  final bool linkify;
+
+  /// Pattern used to detect URLs when [linkify] is `true`. Defaults to
+  /// [_SeeMoreConstants.defaultUrlPattern] (case-insensitive `http(s)://...`
+  /// with trailing sentence punctuation stripped after the match).
+  ///
+  /// Set this to support custom schemes (e.g. `mailto:`) or stricter
+  /// matching. Zero-width patterns (e.g. `RegExp('')`, `RegExp(r'\b')`) are
+  /// silently skipped — they would otherwise produce one recognizer per
+  /// character.
+  final RegExp? urlPattern;
+
+  /// Style applied to detected URLs. Defaults to Material Blue 700 with an
+  /// underline. Pass an explicit [TextStyle] to integrate with your theme.
+  final TextStyle? linkStyle;
+
+  /// Called with the matched URL string when the user taps a detected link.
+  /// Wire this to `url_launcher` or any custom handler — the package itself
+  /// has no networking dependency.
+  final void Function(String url)? onLinkTap;
+
+  // ── Selection ─────────────────────────────────────────────────────────────────
+
+  /// Whether to make the rendered text user-selectable (long-press / drag to
+  /// select, then copy via the platform menu). Wraps the rendered content in
+  /// a [SelectionArea], so inline tap recognizers used for expand / collapse
+  /// and link taps continue to work.
+  final bool selectable;
 
   @override
   State<SeeMoreWidget> createState() => _SeeMoreWidgetState();

@@ -1,3 +1,32 @@
+## 2.1.0
+
+### New Features
+
+* **`SeeMoreWidget.rich(InlineSpan)`** — new constructor for rich content.
+  Styles, tap recognizers, semantics, and `WidgetSpan` icons are preserved
+  when the text is truncated mid-span. `WidgetSpan` counts as one character.
+* **`linkify: true`** — auto-detect URLs and render each as a tappable styled
+  span. Customise via `urlPattern`, `linkStyle`, `onLinkTap`. Works with both
+  constructors. Default pattern matches `http(s)://...`; trailing sentence
+  punctuation is stripped from each match.
+* **`selectable: true`** — wraps the rendered content in a `SelectionArea`
+  for long-press selection and platform copy. Inline expand/collapse and
+  link taps continue to work inside the selection region.
+
+### Note
+
+* `SeeMoreWidget.text` is now `String?` (was `String`) to accommodate the
+  new `.rich` constructor. The default constructor still requires a non-null
+  `text` argument — behaviour for existing callers is unchanged, but external
+  code reading `widget.text` must now handle the nullable type.
+
+### Limitations
+
+* `linkify` scans each `TextSpan.text` in isolation; URLs split across
+  multiple child spans are not detected.
+
+---
+
 ## 2.0.0
 
 ### Breaking Changes

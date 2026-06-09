@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:see_more/see_more.dart';
 
@@ -37,6 +38,12 @@ class _ExamplePageState extends State<ExamplePage> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
   }
 
   final String _longText =
@@ -302,6 +309,64 @@ class _ExamplePageState extends State<ExamplePage> {
                     padding: EdgeInsets.zero,
                   ),
                 ),
+              ),
+            ),
+
+            // 18. Rich text (v2.1) — mixed styles, inline icon, tappable link
+            _buildSection(
+              title: '18. Rich Text (mixed styles + WidgetSpan + recognizer)',
+              child: SeeMoreWidget.rich(
+                TextSpan(children: [
+                  const TextSpan(text: 'Welcome to '),
+                  const WidgetSpan(
+                    child: Icon(Icons.flutter_dash,
+                        size: 18, color: Colors.blue),
+                  ),
+                  const TextSpan(
+                    text: ' Flutter',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const TextSpan(text: ' — read the announcement '),
+                  TextSpan(
+                    text: 'here',
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => _showSnack(
+                          context, 'Recognizer on "here" still works after trim'),
+                  ),
+                  const TextSpan(
+                    text:
+                        '. Lorem ipsum dolor sit amet, consectetur adipiscing elit, '
+                        'sed do eiusmod tempor incididunt ut labore et dolore magna.',
+                  ),
+                ]),
+                maxCharacters: 80,
+              ),
+            ),
+
+            // 19. linkify (v2.1) — auto URL detection
+            _buildSection(
+              title: '19. Linkify (auto URL detection)',
+              child: SeeMoreWidget(
+                'Check the docs at https://docs.flutter.dev for tutorials, '
+                'or open https://pub.dev/packages/see_more to see this package. '
+                'Trailing punctuation like the period at the end is not eaten.',
+                linkify: true,
+                onLinkTap: (url) => _showSnack(context, 'Open: $url'),
+                maxCharacters: 120,
+              ),
+            ),
+
+            // 20. selectable (v2.1) — long-press to select & copy
+            _buildSection(
+              title: '20. Selectable Text (long-press to select & copy)',
+              child: SeeMoreWidget(
+                _longText,
+                selectable: true,
+                maxCharacters: 120,
               ),
             ),
 

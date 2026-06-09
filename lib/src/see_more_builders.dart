@@ -27,6 +27,28 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
     );
   }
 
+  /// Renders an [InlineSpan] tree wrapped with the widget's base [style].
+  ///
+  /// Used by the rich-mode paths so a user-supplied span tree inherits the
+  /// resolved [DefaultTextStyle]+[widget.textStyle] as its base while each
+  /// nested span keeps its own overrides.
+  Widget _buildRichTextFromSpan({
+    required BuildContext context,
+    required InlineSpan content,
+    required TextStyle style,
+    int? maxLines,
+    TextOverflow? overflow,
+  }) {
+    return RichText(
+      textAlign: widget.textAlign,
+      textDirection: widget.textDirection,
+      textScaler: _getTextScaler(context),
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.clip,
+      text: TextSpan(style: style, children: [content]),
+    );
+  }
+
   /// Default expand button used in fade mode when no [expandButtonBuilder] is set.
   Widget _buildDefaultExpandButton(TextStyle expandTextStyle) {
     return Padding(
@@ -102,28 +124,93 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
     required TextStyle textStyle,
     required TextStyle collapseTextStyle,
   }) {
+    final richSpan = _effectiveRichSpan;
+
     if (widget.collapseButtonBuilder != null) {
       return Column(
         crossAxisAlignment: _textAlignToCrossAxis(widget.textAlign),
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildRichText(context: context, text: widget.text, style: textStyle),
+          if (richSpan != null)
+            _buildRichTextFromSpan(
+              context: context,
+              content: richSpan,
+              style: textStyle,
+            )
+          else
+            _buildRichText(
+                context: context, text: widget.text!, style: textStyle),
           widget.collapseButtonBuilder!(context, _handleCollapse),
         ],
       );
     }
 
+    final collapseSpan = TextSpan(
+      text: ' ${widget.collapseText}',
+      style: collapseTextStyle,
+      recognizer: _collapseRecognizer,
+      semanticsLabel: widget.collapseText,
+    );
+
+    if (richSpan != null) {
+      return _buildRichTextFromSpan(
+        context: context,
+        content: TextSpan(children: [richSpan, collapseSpan]),
+        style: textStyle,
+      );
+    }
+
     return _buildRichText(
       context: context,
-      text: widget.text,
+      text: widget.text!,
       style: textStyle,
+      children: [collapseSpan],
+    );
+  }
+
+  /// Rich-mode collapsed view: renders a pre-sliced [InlineSpan] with the
+  /// ellipsis and (optionally) inline expand affordance appended.
+  ///
+  /// Mirrors [_buildCollapsedView] but operates on spans so the trimmed
+  /// content retains its original nested styles and recognizers.
+  Widget _buildCollapsedViewFromSpan({
+    required BuildContext context,
+    required InlineSpan slicedContent,
+    required TextStyle textStyle,
+    required TextStyle expandTextStyle,
+    int? maxLines,
+  }) {
+    final isCustom = widget.expandButtonBuilder != null;
+    final useInline = !widget.showFadeEffect && !isCustom;
+
+    final children = <InlineSpan>[slicedContent];
+    // Fade hides the ellipsis visually; inline + custom-button modes show it.
+    if (!widget.showFadeEffect) {
+      children.add(TextSpan(text: widget.ellipsis));
+    }
+    if (useInline) {
+      children.add(TextSpan(
+        text: ' ${widget.expandText}',
+        style: expandTextStyle,
+        recognizer: _expandRecognizer,
+        semanticsLabel: widget.expandText,
+      ));
+    }
+
+    return Column(
+      crossAxisAlignment: _textAlignToCrossAxis(widget.textAlign),
+      mainAxisSize: MainAxisSize.min,
       children: [
-        TextSpan(
-          text: ' ${widget.collapseText}',
-          style: collapseTextStyle,
-          recognizer: _collapseRecognizer,
-          semanticsLabel: widget.collapseText,
+        _buildRichTextFromSpan(
+          context: context,
+          content: TextSpan(children: children),
+          style: textStyle,
+          maxLines: maxLines,
         ),
+        if (isCustom)
+          widget.expandButtonBuilder!(context, _handleExpand)
+        else if (widget.showFadeEffect)
+          _buildDefaultExpandButton(expandTextStyle),
       ],
     );
   }
@@ -170,24 +257,45 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
     TextStyle expandTextStyle,
     TextStyle collapseTextStyle,
   ) {
-    if (widget.text.length <= widget.maxCharacters) {
+    final richSpan = _effectiveRichSpan;
+    final plainLength = _plainText.length;
+
+    if (plainLength <= widget.maxCharacters) {
+      if (richSpan != null) {
+        return _buildRichTextFromSpan(
+            context: context, content: richSpan, style: textStyle);
+      }
       return _buildRichText(
-          context: context, text: widget.text, style: textStyle);
+          context: context, text: widget.text!, style: textStyle);
     }
 
-    final trimmedText = _trimByCharacter(widget.text, widget.maxCharacters);
+    final Widget collapsedView;
+    if (richSpan != null) {
+      final cutAt = _SpanUtils.charBoundaryIndex(
+        _plainText,
+        widget.maxCharacters,
+        trimAtWordBoundary: widget.trimAtWordBoundary,
+      );
+      var sliced = _SpanUtils.slice(richSpan, cutAt);
+      sliced = _SpanUtils.trimTrailingWhitespace(sliced);
+      collapsedView = _buildCollapsedViewFromSpan(
+        context: context,
+        slicedContent: sliced,
+        textStyle: textStyle,
+        expandTextStyle: expandTextStyle,
+      );
+    } else {
+      final trimmedText = _trimByCharacter(widget.text!, widget.maxCharacters);
+      collapsedView = _buildCollapsedView(
+        context: context,
+        trimmedText: trimmedText,
+        textStyle: textStyle,
+        expandTextStyle: expandTextStyle,
+      );
+    }
 
     return AnimatedCrossFade(
-      firstChild: _wrapWithFade(
-        _buildCollapsedView(
-          context: context,
-          trimmedText: trimmedText,
-          textStyle: textStyle,
-          expandTextStyle: expandTextStyle,
-        ),
-        context,
-        true,
-      ),
+      firstChild: _wrapWithFade(collapsedView, context, true),
       secondChild: _buildExpandedView(
         context: context,
         textStyle: textStyle,
@@ -207,26 +315,42 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
     TextStyle expandTextStyle,
     TextStyle collapseTextStyle,
   ) {
-    final words = widget.text.trim().split(_SeeMoreConstants.whitespaces);
+    final richSpan = _effectiveRichSpan;
+    final source = _plainText;
+    final words = source.trim().split(_SeeMoreConstants.whitespaces);
 
     if (words.length <= widget.maxWords) {
+      if (richSpan != null) {
+        return _buildRichTextFromSpan(
+            context: context, content: richSpan, style: textStyle);
+      }
       return _buildRichText(
-          context: context, text: widget.text, style: textStyle);
+          context: context, text: widget.text!, style: textStyle);
     }
 
-    final trimmedText = _trimByWord(widget.text, widget.maxWords);
+    final Widget collapsedView;
+    if (richSpan != null) {
+      final cutAt = _SpanUtils.charIndexAfterNthWord(source, widget.maxWords);
+      var sliced = _SpanUtils.slice(richSpan, cutAt);
+      sliced = _SpanUtils.trimTrailingWhitespace(sliced);
+      collapsedView = _buildCollapsedViewFromSpan(
+        context: context,
+        slicedContent: sliced,
+        textStyle: textStyle,
+        expandTextStyle: expandTextStyle,
+      );
+    } else {
+      final trimmedText = _trimByWord(widget.text!, widget.maxWords);
+      collapsedView = _buildCollapsedView(
+        context: context,
+        trimmedText: trimmedText,
+        textStyle: textStyle,
+        expandTextStyle: expandTextStyle,
+      );
+    }
 
     return AnimatedCrossFade(
-      firstChild: _wrapWithFade(
-        _buildCollapsedView(
-          context: context,
-          trimmedText: trimmedText,
-          textStyle: textStyle,
-          expandTextStyle: expandTextStyle,
-        ),
-        context,
-        true,
-      ),
+      firstChild: _wrapWithFade(collapsedView, context, true),
       secondChild: _buildExpandedView(
         context: context,
         textStyle: textStyle,
@@ -252,13 +376,17 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
         final textScaler = _getTextScaler(context);
         final useInline =
             !widget.showFadeEffect && widget.expandButtonBuilder == null;
+        final richSpan = _effectiveRichSpan;
 
         // Build a compound key from every input that affects the trim result.
         // When the key is unchanged we skip the TextPainter layout entirely.
         // Note: collapseTextStyle is intentionally excluded — it only affects
         // the expanded view and has no influence on where the text is cut.
+        // For rich mode, rootSpan carries the content (TextSpan has value-
+        // based ==) and text is empty; for string mode the inverse.
         final key = (
-          text: widget.text,
+          text: richSpan == null ? widget.text! : '',
+          rootSpan: richSpan,
           textStyle: textStyle,
           expandTextStyle: expandTextStyle,
           maxWidth: constraints.maxWidth,
@@ -285,22 +413,35 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
         }
 
         if (!_lineTrimIsTruncated) {
+          if (richSpan != null) {
+            return _buildRichTextFromSpan(
+                context: context, content: richSpan, style: textStyle);
+          }
           return _buildRichText(
-              context: context, text: widget.text, style: textStyle);
+              context: context, text: widget.text!, style: textStyle);
+        }
+
+        final Widget collapsedView;
+        if (richSpan != null) {
+          collapsedView = _buildCollapsedViewFromSpan(
+            context: context,
+            slicedContent: _lineTrimSpanResult ?? const TextSpan(text: ''),
+            textStyle: textStyle,
+            expandTextStyle: expandTextStyle,
+            maxLines: widget.maxLines,
+          );
+        } else {
+          collapsedView = _buildCollapsedView(
+            context: context,
+            trimmedText: _lineTrimResult,
+            textStyle: textStyle,
+            expandTextStyle: expandTextStyle,
+            maxLines: widget.maxLines,
+          );
         }
 
         return AnimatedCrossFade(
-          firstChild: _wrapWithFade(
-            _buildCollapsedView(
-              context: context,
-              trimmedText: _lineTrimResult,
-              textStyle: textStyle,
-              expandTextStyle: expandTextStyle,
-              maxLines: widget.maxLines,
-            ),
-            context,
-            true,
-          ),
+          firstChild: _wrapWithFade(collapsedView, context, true),
           secondChild: _buildExpandedView(
             context: context,
             textStyle: textStyle,
@@ -317,7 +458,8 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
   }
 
   /// Runs the TextPainter layout pass and writes the result into the cache
-  /// fields [_lineTrimIsTruncated] and [_lineTrimResult].
+  /// fields [_lineTrimIsTruncated], [_lineTrimResult] (string mode) and
+  /// [_lineTrimSpanResult] (rich mode).
   /// Always called immediately before those fields are read, never from setState.
   void _computeLineTrim({
     required BoxConstraints constraints,
@@ -327,8 +469,15 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
     required TextScaler textScaler,
     required bool useInline,
   }) {
+    final richSpan = _effectiveRichSpan;
+    // For rich mode, lay out the user's span tree wrapped in the base style
+    // so character offsets returned by the painter match the plain-text length.
+    final TextSpan paintSpan = richSpan != null
+        ? TextSpan(style: textStyle, children: [richSpan])
+        : TextSpan(text: widget.text!, style: textStyle);
+
     final textPainter = TextPainter(
-      text: TextSpan(text: widget.text, style: textStyle),
+      text: paintSpan,
       textAlign: widget.textAlign,
       textDirection: textDirection,
       textScaler: textScaler,
@@ -342,6 +491,7 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
       textPainter.dispose();
       _lineTrimIsTruncated = false;
       _lineTrimResult = '';
+      _lineTrimSpanResult = null;
       return;
     }
 
@@ -381,18 +531,27 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
 
     textPainter.dispose();
 
-    endIndex = endIndex.clamp(0, widget.text.length);
+    final source = _plainText;
+    endIndex = endIndex.clamp(0, source.length);
 
-    String trimmedText = widget.text.substring(0, endIndex);
     if (widget.trimAtWordBoundary && endIndex > 0) {
-      final lastSpace = trimmedText.lastIndexOf(_SeeMoreConstants.whitespace);
+      final prefix = source.substring(0, endIndex);
+      final lastSpace = prefix.lastIndexOf(_SeeMoreConstants.whitespace);
       if (lastSpace > endIndex * _SeeMoreConstants.wordBoundaryMinRatio) {
-        trimmedText = trimmedText.substring(0, lastSpace);
+        endIndex = lastSpace;
       }
     }
 
     _lineTrimIsTruncated = true;
-    _lineTrimResult = trimmedText.trimRight();
+    if (richSpan != null) {
+      var sliced = _SpanUtils.slice(richSpan, endIndex);
+      sliced = _SpanUtils.trimTrailingWhitespace(sliced);
+      _lineTrimSpanResult = sliced;
+      _lineTrimResult = '';
+    } else {
+      _lineTrimResult = source.substring(0, endIndex).trimRight();
+      _lineTrimSpanResult = null;
+    }
   }
 
   // ── Utilities ─────────────────────────────────────────────────────────────────
