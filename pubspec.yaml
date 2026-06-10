@@ -1,6 +1,20 @@
 name: see_more
-description: "Expandable text widget with See More/Less, character/line/word trimming, rich InlineSpan support, auto URL linkification, selectable text, programmatic SeeMoreController, custom button builders, fade effect, and smooth animations."
-version: 2.1.0
+description: "Expandable text widget with See More/Less. Character/line/word trim, rich InlineSpan, auto URL linkify, selectable text, programmatic controller, custom buttons, fade effect."
+version: 2.1.1
+
+screenshots:
+  - description: "Character-based trimming with inline See More button."
+    path: screenshots/01_basic.png
+  - description: "Fade effect in line-mode trimming."
+    path: screenshots/02_fade.png
+  - description: "Rich text via SeeMoreWidget.rich — preserves mixed styles and tap recognizers across truncation."
+    path: screenshots/03_rich.png
+  - description: "Auto URL linkification — detected URLs render as tappable styled spans."
+    path: screenshots/04_linkify.png
+  - description: "Selectable mode — long-press to select and copy."
+    path: screenshots/05_selectable.png
+  - description: "Custom expand button via expandButtonBuilder."
+    path: screenshots/06_custom_button.png
 homepage: https://github.com/igloodev/see_more
 
 environment:

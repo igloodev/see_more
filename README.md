@@ -2,6 +2,21 @@
 
 An expandable text widget for Flutter with smooth animations, programmatic control, and rich customisation.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/demo.gif" alt="Expand / collapse animation" width="60%">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/03_rich.png" alt="Rich text" width="46%">
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/04_linkify.png" alt="Auto linkify" width="46%">
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/02_fade.png" alt="Fade effect" width="46%">
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/06_custom_button.png" alt="Custom expand button" width="46%">
+</p>
+
 ## Features
 
 - **Three trim modes** — character-based, line-based, or word-count-based trimming
