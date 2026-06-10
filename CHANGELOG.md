@@ -3,12 +3,11 @@
 * Shortened `pubspec.yaml` description to fit pub.dev's 60–180 character
   limit (was 230 characters in 2.1.0 — restored the 10/10 "valid pubspec"
   pana score).
-* Added 6 screenshots showing each feature (character trim, fade, rich
-  text, linkify, selectable, custom button). Wired via the
-  `screenshots:` field in `pubspec.yaml` so they appear at the top of
-  the pub.dev package page, and embedded inline at the top of the README.
-* Added animated demo GIF (`screenshots/demo.gif`) showing the expand /
-  collapse cross-fade cycle. Hero image at the top of the README.
+* Added 6 feature screenshots (character trim, fade, rich text, linkify,
+  selectable, custom button) and an animated demo GIF showing the expand /
+  collapse cycle. Embedded inline at the top of the README via raw GitHub
+  URLs. The image files are kept in the repo but excluded from the
+  published archive via `.pubignore` to keep the package size small.
 
 ## 2.1.0
 

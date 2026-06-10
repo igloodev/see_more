@@ -32,3 +32,7 @@ example/pubspec.yaml
 example/analysis_options.yaml
 example/README.md
 test/
+
+# Visual assets — referenced from README via raw GitHub URLs instead of
+# being shipped in the package archive. Keeps the published size small.
+screenshots/
