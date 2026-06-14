@@ -35,8 +35,10 @@ void main() {
       );
     }
 
-    testWidgets('short text (≤ maxWords) renders without button', (tester) async {
-      await tester.pumpWidget(buildWordWidget(text: fiveWordText, maxWords: 10));
+    testWidgets('short text (≤ maxWords) renders without button',
+        (tester) async {
+      await tester
+          .pumpWidget(buildWordWidget(text: fiveWordText, maxWords: 10));
 
       expect(anyRichTextContains(tester, 'See More'), isFalse);
       expect(anyRichTextContains(tester, fiveWordText), isTrue);

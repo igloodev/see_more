@@ -8,6 +8,7 @@ part 'see_more_constants.dart';
 part 'see_more_state.dart';
 part 'see_more_builders.dart';
 part 'span_utils.dart';
+part 'see_more_annotation.dart';
 
 /// A widget that displays text with expandable/collapsible "See More" functionality.
 ///
@@ -92,6 +93,7 @@ class SeeMoreWidget extends StatefulWidget {
     this.urlPattern,
     this.linkStyle,
     this.onLinkTap,
+    this.annotations,
     this.selectable = false,
   })  : textSpan = null,
         assert(text != '', 'text must not be empty'),
@@ -178,6 +180,7 @@ class SeeMoreWidget extends StatefulWidget {
     this.urlPattern,
     this.linkStyle,
     this.onLinkTap,
+    this.annotations,
     this.selectable = false,
   })  : text = null,
         assert(
@@ -376,6 +379,18 @@ class SeeMoreWidget extends StatefulWidget {
   /// Wire this to `url_launcher` or any custom handler — the package itself
   /// has no networking dependency.
   final void Function(String url)? onLinkTap;
+
+  // ── Annotations ───────────────────────────────────────────────────────────────
+
+  /// Pattern-based annotations to auto-detect, style, and make tappable —
+  /// e.g. hashtags, mentions, or any custom [RegExp]. See [SeeMoreAnnotation]
+  /// and its [SeeMoreAnnotation.hashtag] / [SeeMoreAnnotation.mention] /
+  /// [SeeMoreAnnotation.url] helpers.
+  ///
+  /// Works with both constructors and composes with [linkify]: detected URLs
+  /// (from [linkify]) take precedence, then these annotations in list order.
+  /// Styles and recognizers are preserved across truncation.
+  final List<SeeMoreAnnotation>? annotations;
 
   // ── Selection ─────────────────────────────────────────────────────────────────
 

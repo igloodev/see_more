@@ -119,7 +119,8 @@ void main() {
     });
 
     testWidgets('uses custom linkStyle when provided', (tester) async {
-      const custom = TextStyle(color: Color(0xFF00AA00), fontWeight: FontWeight.bold);
+      const custom =
+          TextStyle(color: Color(0xFF00AA00), fontWeight: FontWeight.bold);
       await tester.pumpWidget(_host(
         text: 'Go to https://example.com now.',
         linkify: true,
@@ -231,8 +232,7 @@ void main() {
       final leaves = _allLeaves(tester);
       // A leaf starting with "https://" must still wear the link style.
       // No orElse fallback — the test fails loudly if the prefix is missing.
-      final urlPrefix =
-          leaves.firstWhere((l) => l.text.startsWith('https://'));
+      final urlPrefix = leaves.firstWhere((l) => l.text.startsWith('https://'));
       expect(urlPrefix.style?.decoration, TextDecoration.underline);
 
       // Tapping the visible URL prefix invokes onLinkTap with the FULL URL
@@ -288,7 +288,8 @@ void main() {
       expect(tapped, 'build-3:https://example.com');
     });
 
-    testWidgets('material change replaces recognizers; closure-only change keeps them',
+    testWidgets(
+        'material change replaces recognizers; closure-only change keeps them',
         (tester) async {
       // Collect every TapGestureRecognizer attached to a link span in the
       // current frame's rendered RichTexts.
@@ -325,8 +326,7 @@ void main() {
       ));
       final afterClosureChange = linkRecognizers();
       expect(afterClosureChange.intersection(initial).length, initial.length,
-          reason:
-              'closure-only rebuild must not churn recognizers (A2 fix)');
+          reason: 'closure-only rebuild must not churn recognizers (A2 fix)');
 
       // Material content change → recognizers should be replaced.
       await tester.pumpWidget(_host(
@@ -346,8 +346,8 @@ void main() {
         linkify: true,
       ));
       // Replace with an empty scaffold to trigger unmount.
-      await tester.pumpWidget(
-          const MaterialApp(home: Scaffold(body: SizedBox())));
+      await tester
+          .pumpWidget(const MaterialApp(home: Scaffold(body: SizedBox())));
       // Reaching this line means dispose() ran on every link recognizer
       // without throwing (TapGestureRecognizer.dispose asserts when called
       // multiple times or in invalid state).

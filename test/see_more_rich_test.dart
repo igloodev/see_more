@@ -5,7 +5,8 @@ import 'package:see_more/see_more.dart';
 
 import 'helpers/see_more_test_helpers.dart';
 
-Widget _hostRich(InlineSpan span, {
+Widget _hostRich(
+  InlineSpan span, {
   TrimMode trimMode = TrimMode.character,
   int maxCharacters = 50,
   int maxLines = 2,
@@ -110,7 +111,8 @@ void main() {
       expect(anyRichTextContains(tester, '...'), isTrue);
     });
 
-    testWidgets('preserves child-span styles in collapsed view', (tester) async {
+    testWidgets('preserves child-span styles in collapsed view',
+        (tester) async {
       // Build "Hello, world! This is a longer trailing tail." with the
       // middle word "world" in red. maxCharacters=12 cuts inside "world"
       // (after "Hello, world") so the styled run survives in the
@@ -191,7 +193,8 @@ void main() {
       expect(collapsed, contains('one two'));
       // "three" must not appear in the collapsed prefix.
       expect(collapsed.contains('three'), isFalse,
-          reason: 'wordBoundary should back up before "three". got: $collapsed');
+          reason:
+              'wordBoundary should back up before "three". got: $collapsed');
     });
   });
 
@@ -271,7 +274,8 @@ void main() {
       // The "bbbbb" run must NOT be present in the collapsed (first) RichText.
       final collapsed = _collapsedRichTextPlain(tester, 'See More');
       expect(collapsed.contains('bbbbb'), isFalse,
-          reason: 'cut at 6 chars should drop the "bbbbb" tail. got: $collapsed');
+          reason:
+              'cut at 6 chars should drop the "bbbbb" tail. got: $collapsed');
     });
 
     testWidgets('WidgetSpan counts as 1 character in trim — boundary exclude',

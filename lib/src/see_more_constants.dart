@@ -40,4 +40,19 @@ abstract class _SeeMoreConstants {
     color: Color(0xFF1976D2),
     decoration: TextDecoration.underline,
   );
+
+  /// Default hashtag pattern for [SeeMoreAnnotation.hashtag] — `#` followed by
+  /// one or more letters, digits, or underscores.
+  static final RegExp defaultHashtagPattern = RegExp(r'#[A-Za-z0-9_]+');
+
+  /// Default mention pattern for [SeeMoreAnnotation.mention] — `@` followed by
+  /// one or more letters, digits, underscores, or dots.
+  static final RegExp defaultMentionPattern = RegExp(r'@[A-Za-z0-9_.]+');
+
+  /// Default style for detected hashtags / mentions when none is supplied:
+  /// Material Blue 700 (no underline, distinguishing them from URLs).
+  static const TextStyle defaultTagStyle = TextStyle(
+    color: Color(0xFF1976D2),
+    fontWeight: FontWeight.w600,
+  );
 }

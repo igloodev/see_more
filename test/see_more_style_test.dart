@@ -26,7 +26,8 @@ void main() {
       expect(richText.text.style?.color, customColor);
     });
 
-    testWidgets('expandTextStyle is applied to expand button span', (tester) async {
+    testWidgets('expandTextStyle is applied to expand button span',
+        (tester) async {
       const customColor = Color(0xFF123456);
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -35,7 +36,8 @@ void main() {
             child: SeeMoreWidget(
               longText,
               maxCharacters: 50,
-              expandTextStyle: const TextStyle(color: customColor, fontSize: 18),
+              expandTextStyle:
+                  const TextStyle(color: customColor, fontSize: 18),
             ),
           ),
         ),
@@ -54,7 +56,8 @@ void main() {
       expect(expandSpan?.style?.fontSize, 18.0);
     });
 
-    testWidgets('collapseTextStyle is applied to collapse button span', (tester) async {
+    testWidgets('collapseTextStyle is applied to collapse button span',
+        (tester) async {
       const customColor = Color(0xFF654321);
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -64,7 +67,8 @@ void main() {
               longText,
               maxCharacters: 50,
               initiallyExpanded: true,
-              collapseTextStyle: const TextStyle(color: customColor, fontSize: 16),
+              collapseTextStyle:
+                  const TextStyle(color: customColor, fontSize: 16),
             ),
           ),
         ),
@@ -101,7 +105,8 @@ void main() {
       expect(richTexts.every((rt) => rt.textAlign == TextAlign.center), isTrue);
     });
 
-    testWidgets('textDirection RTL is propagated to all RichTexts', (tester) async {
+    testWidgets('textDirection RTL is propagated to all RichTexts',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SizedBox(
@@ -116,12 +121,14 @@ void main() {
       ));
 
       final richTexts = tester.widgetList<RichText>(find.byType(RichText));
-      expect(richTexts.every((rt) => rt.textDirection == TextDirection.rtl), isTrue);
+      expect(richTexts.every((rt) => rt.textDirection == TextDirection.rtl),
+          isTrue);
     });
   });
 
   group('SeeMoreWidget animation parameters', () {
-    testWidgets('custom animationDuration is set on AnimatedCrossFade', (tester) async {
+    testWidgets('custom animationDuration is set on AnimatedCrossFade',
+        (tester) async {
       const customDuration = Duration(milliseconds: 800);
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -142,7 +149,8 @@ void main() {
       expect(crossFade.duration, customDuration);
     });
 
-    testWidgets('custom animationCurve is set on AnimatedCrossFade', (tester) async {
+    testWidgets('custom animationCurve is set on AnimatedCrossFade',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SizedBox(

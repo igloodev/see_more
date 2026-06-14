@@ -150,7 +150,8 @@ void main() {
       expect(find.byType(SelectionArea), findsOneWidget);
     });
 
-    testWidgets('custom expandButtonBuilder still receives taps inside SelectionArea',
+    testWidgets(
+        'custom expandButtonBuilder still receives taps inside SelectionArea',
         (tester) async {
       var tapped = 0;
       final button = TextButton(

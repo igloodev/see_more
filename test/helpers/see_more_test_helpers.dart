@@ -14,7 +14,9 @@ bool anyRichTextContains(WidgetTester tester, String text) {
   for (final richText in richTexts) {
     // includeSemanticsLabels: false so we match the visible text, not the
     // accessibility label (which omits leading spaces on inline button spans).
-    if (richText.text.toPlainText(includeSemanticsLabels: false).contains(text)) {
+    if (richText.text
+        .toPlainText(includeSemanticsLabels: false)
+        .contains(text)) {
       return true;
     }
   }

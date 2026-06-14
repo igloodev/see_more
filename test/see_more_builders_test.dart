@@ -27,7 +27,8 @@ void main() {
       );
     }
 
-    testWidgets('expandButtonBuilder is rendered when collapsed', (tester) async {
+    testWidgets('expandButtonBuilder is rendered when collapsed',
+        (tester) async {
       await tester.pumpWidget(buildCustomWidget(
         expandBuilder: (_, __) =>
             const Text('CUSTOM_EXPAND', key: Key('custom_expand')),
@@ -36,7 +37,8 @@ void main() {
       expect(find.byKey(const Key('custom_expand')), findsOneWidget);
     });
 
-    testWidgets('collapseButtonBuilder is rendered when expanded', (tester) async {
+    testWidgets('collapseButtonBuilder is rendered when expanded',
+        (tester) async {
       await tester.pumpWidget(buildCustomWidget(
         initiallyExpanded: true,
         collapseBuilder: (_, __) =>
@@ -60,7 +62,8 @@ void main() {
       expect(anyRichTextContains(tester, 'See Less'), isTrue);
     });
 
-    testWidgets('tapping custom collapse button collapses widget', (tester) async {
+    testWidgets('tapping custom collapse button collapses widget',
+        (tester) async {
       await tester.pumpWidget(buildCustomWidget(
         initiallyExpanded: true,
         collapseBuilder: (_, onTap) => GestureDetector(
@@ -75,7 +78,8 @@ void main() {
       expect(anyRichTextContains(tester, 'See More'), isTrue);
     });
 
-    testWidgets('custom expand does not show inline See More text', (tester) async {
+    testWidgets('custom expand does not show inline See More text',
+        (tester) async {
       await tester.pumpWidget(buildCustomWidget(
         expandBuilder: (_, __) => const SizedBox(),
       ));

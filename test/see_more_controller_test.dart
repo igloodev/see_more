@@ -178,7 +178,8 @@ void main() {
       expect(true, isTrue);
     });
 
-    testWidgets('controller initiallyExpanded takes precedence over widget initiallyExpanded',
+    testWidgets(
+        'controller initiallyExpanded takes precedence over widget initiallyExpanded',
         (tester) async {
       final ctrl = SeeMoreController(initiallyExpanded: true);
       addTearDown(ctrl.dispose);
@@ -200,7 +201,8 @@ void main() {
       expect(anyRichTextContains(tester, 'See Less'), isTrue);
     });
 
-    testWidgets('swapping controller updates widget to new controller state', (tester) async {
+    testWidgets('swapping controller updates widget to new controller state',
+        (tester) async {
       final ctrl1 = SeeMoreController();
       final ctrl2 = SeeMoreController(initiallyExpanded: true);
       addTearDown(ctrl1.dispose);
@@ -210,7 +212,8 @@ void main() {
             home: Scaffold(
               body: SizedBox(
                 width: 300,
-                child: SeeMoreWidget(longText, maxCharacters: 50, controller: c),
+                child:
+                    SeeMoreWidget(longText, maxCharacters: 50, controller: c),
               ),
             ),
           );

@@ -447,8 +447,9 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
             textStyle: textStyle,
             collapseTextStyle: collapseTextStyle,
           ),
-          crossFadeState:
-              _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: widget.animationDuration,
           firstCurve: widget.animationCurve,
           secondCurve: widget.animationCurve,
@@ -515,9 +516,8 @@ extension _SeeMoreBuilders on _SeeMoreWidgetState {
       final expandWidth = expandPainter.width;
       expandPainter.dispose();
 
-      final targetX = constraints.maxWidth -
-          expandWidth -
-          _SeeMoreConstants.seeMorePadding;
+      final targetX =
+          constraints.maxWidth - expandWidth - _SeeMoreConstants.seeMorePadding;
       if (targetX > 0) {
         final lastLineHalfHeight = lineMetrics.length >= widget.maxLines
             ? lineMetrics[widget.maxLines - 1].height / 2

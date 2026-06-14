@@ -1,7 +1,16 @@
 name: see_more
-description: "Expandable text widget with See More/Less. Character/line/word trim, rich InlineSpan, auto URL linkify, selectable text, programmatic controller, custom buttons, fade effect."
-version: 2.1.1
+description: "Expandable See More/Less text — char/line/word trim, rich spans, auto-linkify URLs, #hashtag / @mention annotations, selectable, controller, fade."
+version: 2.2.0
 homepage: https://github.com/igloodev/see_more
+repository: https://github.com/igloodev/see_more
+issue_tracker: https://github.com/igloodev/see_more/issues
+
+topics:
+  - text
+  - expandable
+  - read-more
+  - widget
+  - linkify
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

@@ -3,6 +3,13 @@
 An expandable text widget for Flutter with smooth animations, programmatic control, and rich customisation.
 
 <p align="center">
+  <a href="https://pub.dev/packages/see_more"><img src="https://img.shields.io/pub/v/see_more?logo=dart&color=0175C2" alt="pub version"></a>
+  <a href="https://pub.dev/packages/see_more/score"><img src="https://img.shields.io/pub/points/see_more?color=2EA44F" alt="pub points"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.16%2B-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
+  <a href="https://github.com/igloodev/see_more/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/igloodev/see_more/master/screenshots/demo.gif" alt="Expand / collapse animation" width="60%">
 </p>
 
@@ -22,6 +29,7 @@ An expandable text widget for Flutter with smooth animations, programmatic contr
 - **Three trim modes** — character-based, line-based, or word-count-based trimming
 - **Rich text support** — `SeeMoreWidget.rich(InlineSpan)` preserves nested styles, recognizers, and `WidgetSpan` icons across truncation
 - **Auto URL linkification** — `linkify: true` detects `http(s)://` URLs and renders each as a tappable styled span; wire `onLinkTap` to any handler
+- **Hashtag / mention / custom annotations** — `annotations: [SeeMoreAnnotation.hashtag(…), SeeMoreAnnotation.mention(…)]` auto-detect and style any pattern, each independently tappable
 - **Selectable text** — `selectable: true` wraps content in `SelectionArea` so users can long-press to select and copy
 - **`SeeMoreController`** — expand, collapse, or toggle from anywhere in your code
 - **Custom button builders** — replace the default "See More" / "See Less" with any widget
@@ -38,7 +46,7 @@ An expandable text widget for Flutter with smooth animations, programmatic contr
 
 ```yaml
 dependencies:
-  see_more: ^2.1.0
+  see_more: ^2.2.0
 ```
 
 ## Usage
@@ -193,6 +201,33 @@ SeeMoreWidget(
 multiple child spans are not detected — keep each URL contiguous in a single
 `TextSpan.text`.
 
+### Hashtags, mentions & custom annotations
+
+Auto-detect and style any pattern — hashtags, mentions, or your own `RegExp` —
+each independently tappable. Annotations compose with `linkify` (URLs win ties),
+and detected spans stay tappable across truncation.
+
+```dart
+SeeMoreWidget(
+  'Loved #flutter at the @flutterdev talk — see https://flutter.dev',
+  linkify: true,                                  // URLs
+  onLinkTap: (url) => launchUrl(Uri.parse(url)),
+  annotations: [
+    SeeMoreAnnotation.hashtag(onTap: (tag) => openTag(tag)),       // #flutter
+    SeeMoreAnnotation.mention(onTap: (user) => openProfile(user)), // @flutterdev
+    // Any custom pattern:
+    SeeMoreAnnotation(
+      pattern: RegExp(r'\$[A-Z]+'),                                // $AAPL
+      style: const TextStyle(color: Colors.deepPurple),
+      onTap: (ticker) => openTicker(ticker),
+    ),
+  ],
+)
+```
+
+Each `SeeMoreAnnotation` takes a `pattern`, an optional `style`, and an `onTap`.
+The `.hashtag`, `.mention`, and `.url` factories ship sensible defaults.
+
 ### Selectable text
 
 ```dart
@@ -260,6 +295,7 @@ SeeMoreWidget(
 | `urlPattern` | `RegExp?` | `https?://...` | Custom URL detection pattern for `linkify` (e.g. for `mailto:` support) |
 | `linkStyle` | `TextStyle?` | Material Blue 700 + underline | Style applied to detected URLs |
 | `onLinkTap` | `void Function(String url)?` | `null` | Called with the matched URL when the user taps a detected link. Wire to `url_launcher` or any custom handler |
+| `annotations` | `List<SeeMoreAnnotation>?` | `null` | Pattern-based annotations (hashtags, mentions, custom) — each styled and tappable. Composes with `linkify` |
 | `selectable` | `bool` | `false` | Wraps the content in `SelectionArea` so users can long-press to select and copy |
 | `trimMode` | `TrimMode` | `character` | `character`, `line`, or `word` |
 | `maxCharacters` | `int` | `240` | Max characters before truncation (`character` mode) |

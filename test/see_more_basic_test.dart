@@ -21,20 +21,23 @@ void main() {
       expect(anyRichTextContains(tester, 'See More'), isTrue);
     });
 
-    testWidgets('respects initiallyExpanded=false (See More visible)', (tester) async {
+    testWidgets('respects initiallyExpanded=false (See More visible)',
+        (tester) async {
       await tester.pumpWidget(buildWidget(initiallyExpanded: false));
 
       expect(anyRichTextContains(tester, 'See More'), isTrue);
     });
 
-    testWidgets('respects initiallyExpanded=true (See Less visible)', (tester) async {
+    testWidgets('respects initiallyExpanded=true (See Less visible)',
+        (tester) async {
       await tester.pumpWidget(buildWidget(initiallyExpanded: true));
 
       expect(anyRichTextContains(tester, 'See Less'), isTrue);
     });
 
     testWidgets('line mode renders correctly', (tester) async {
-      await tester.pumpWidget(buildWidget(trimMode: TrimMode.line, maxLines: 2));
+      await tester
+          .pumpWidget(buildWidget(trimMode: TrimMode.line, maxLines: 2));
 
       expect(anyRichTextContains(tester, 'See More'), isTrue);
     });
@@ -42,7 +45,8 @@ void main() {
     testWidgets('uses theme colors when no style provided', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)),
+          theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)),
           home: const Scaffold(
             body: SizedBox(
               width: 300,
@@ -106,7 +110,8 @@ void main() {
     });
 
     testWidgets('line mode uses LayoutBuilder', (tester) async {
-      await tester.pumpWidget(buildWidget(trimMode: TrimMode.line, maxLines: 3));
+      await tester
+          .pumpWidget(buildWidget(trimMode: TrimMode.line, maxLines: 3));
 
       expect(find.byType(LayoutBuilder), findsOneWidget);
     });
@@ -121,7 +126,8 @@ void main() {
       expect(true, isTrue);
     });
 
-    testWidgets('onExpand callback is called when tapping expand button', (tester) async {
+    testWidgets('onExpand callback is called when tapping expand button',
+        (tester) async {
       bool expandCalled = false;
       await tester.pumpWidget(buildWidget(onExpand: () => expandCalled = true));
 
@@ -140,7 +146,8 @@ void main() {
       expect(expandCalled, isTrue);
     });
 
-    testWidgets('onCollapse callback is called when tapping collapse button', (tester) async {
+    testWidgets('onCollapse callback is called when tapping collapse button',
+        (tester) async {
       bool collapseCalled = false;
       await tester.pumpWidget(buildWidget(
         initiallyExpanded: true,
@@ -162,7 +169,8 @@ void main() {
       expect(collapseCalled, isTrue);
     });
 
-    testWidgets('didUpdateWidget updates state when initiallyExpanded changes', (tester) async {
+    testWidgets('didUpdateWidget updates state when initiallyExpanded changes',
+        (tester) async {
       await tester.pumpWidget(buildWidget(initiallyExpanded: false));
       expect(anyRichTextContains(tester, 'See More'), isTrue);
 

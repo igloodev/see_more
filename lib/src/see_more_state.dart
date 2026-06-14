@@ -70,8 +70,7 @@ class _SeeMoreWidgetState extends State<SeeMoreWidget> {
     if (span == null) return widget.text!;
     if (_plainTextCache != null &&
         _plainTextCacheSpan != null &&
-        (identical(_plainTextCacheSpan, span) ||
-            _plainTextCacheSpan == span)) {
+        (identical(_plainTextCacheSpan, span) || _plainTextCacheSpan == span)) {
       return _plainTextCache!;
     }
     final computed = _SpanUtils.plainText(span);
@@ -117,7 +116,8 @@ class _SeeMoreWidgetState extends State<SeeMoreWidget> {
         widget.text != oldWidget.text ||
         widget.textSpan != oldWidget.textSpan ||
         widget.urlPattern != oldWidget.urlPattern ||
-        widget.linkStyle != oldWidget.linkStyle) {
+        widget.linkStyle != oldWidget.linkStyle ||
+        _annotationsDiffer(widget.annotations, oldWidget.annotations)) {
       _rebuildLinkifiedSpan();
     }
   }
@@ -140,11 +140,29 @@ class _SeeMoreWidgetState extends State<SeeMoreWidget> {
     _linkRecognizers.clear();
   }
 
-  /// Rebuilds [_linkifiedSpan] from the current widget inputs, disposing
-  /// every recognizer from the previous build first.
+  /// The combined annotation list for the current widget: URL detection from
+  /// [SeeMoreWidget.linkify] first (so URLs win ties), then the user's
+  /// [SeeMoreWidget.annotations] in order. Recomputed cheaply on demand so tap
+  /// handlers always read the latest callbacks.
+  List<SeeMoreAnnotation> _combinedAnnotations() {
+    final list = <SeeMoreAnnotation>[];
+    if (widget.linkify) {
+      list.add(SeeMoreAnnotation.url(
+        pattern: widget.urlPattern,
+        style: widget.linkStyle,
+        onTap: widget.onLinkTap,
+      ));
+    }
+    if (widget.annotations != null) list.addAll(widget.annotations!);
+    return list;
+  }
+
+  /// Rebuilds [_linkifiedSpan] (the annotated span) from the current widget
+  /// inputs, disposing every recognizer from the previous build first.
   void _rebuildLinkifiedSpan() {
     _disposeLinkRecognizers();
-    if (!widget.linkify) {
+    final combined = _combinedAnnotations();
+    if (combined.isEmpty) {
       _linkifiedSpan = null;
       return;
     }
@@ -154,24 +172,58 @@ class _SeeMoreWidgetState extends State<SeeMoreWidget> {
       _linkifiedSpan = null;
       return;
     }
-    _linkifiedSpan = _SpanUtils.linkify(
+    // Resolve each annotation: default its style and route onTap through an
+    // index-keyed forwarder, so recognizers read the LATEST callback at tap
+    // time and closure-identity churn between builds never forces a rebuild.
+    final resolved = <_ResolvedAnnotation>[];
+    for (var i = 0; i < combined.length; i++) {
+      final index = i; // fresh binding per iteration for correct capture.
+      resolved.add(_ResolvedAnnotation(
+        pattern: combined[i].pattern,
+        style: combined[i].style ?? _SeeMoreConstants.defaultTagStyle,
+        onTap: (match) => _onAnnotationTapped(index, match),
+        trimTrailing: combined[i].trimTrailingPunctuation,
+      ));
+    }
+    _linkifiedSpan = _SpanUtils.annotate(
       source,
-      pattern: widget.urlPattern ?? _SeeMoreConstants.defaultUrlPattern,
-      linkStyle: widget.linkStyle ?? _SeeMoreConstants.defaultLinkStyle,
-      // Pass the State method, not [widget.onLinkTap] directly: this lets
-      // the recognizer read the LATEST callback from the current widget on
-      // every tap, so callers don't need to invalidate recognizers when only
-      // the callback identity changes between builds.
-      onTap: _onLinkTapped,
+      annotations: resolved,
       recognizerSink: _linkRecognizers,
     );
   }
 
-  /// Forwards link taps to the current [widget.onLinkTap]. Captured by each
-  /// link recognizer; resolves the active callback at tap time so closure
-  /// identity changes between builds do not require span rebuilds.
-  void _onLinkTapped(String url) {
-    widget.onLinkTap?.call(url);
+  /// Forwards a tap on the annotation at [index] to its current callback,
+  /// resolved from the live widget so callback-identity changes between builds
+  /// don't require rebuilding the span / recognizers.
+  void _onAnnotationTapped(int index, String match) {
+    final combined = _combinedAnnotations();
+    if (index >= 0 && index < combined.length) {
+      combined[index].onTap?.call(match);
+    }
+  }
+
+  /// Whether two annotation lists differ structurally (pattern / style / trim
+  /// flag / count). onTap differences are ignored — they resolve at tap time.
+  bool _annotationsDiffer(
+    List<SeeMoreAnnotation>? a,
+    List<SeeMoreAnnotation>? b,
+  ) {
+    if (identical(a, b)) return false;
+    final al = a ?? const <SeeMoreAnnotation>[];
+    final bl = b ?? const <SeeMoreAnnotation>[];
+    if (al.length != bl.length) return true;
+    for (var i = 0; i < al.length; i++) {
+      if (al[i].pattern.pattern != bl[i].pattern.pattern ||
+          al[i].pattern.isCaseSensitive != bl[i].pattern.isCaseSensitive ||
+          al[i].pattern.isMultiLine != bl[i].pattern.isMultiLine ||
+          al[i].pattern.isUnicode != bl[i].pattern.isUnicode ||
+          al[i].pattern.isDotAll != bl[i].pattern.isDotAll ||
+          al[i].style != bl[i].style ||
+          al[i].trimTrailingPunctuation != bl[i].trimTrailingPunctuation) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // ── Controller sync ───────────────────────────────────────────────────────────

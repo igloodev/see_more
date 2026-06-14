@@ -132,7 +132,8 @@ class _ExamplePageState extends State<ExamplePage> {
 
             // 5. With Callbacks
             _buildSection(
-              title: '5. With Callbacks (Expand: $_expandCount, Collapse: $_collapseCount)',
+              title:
+                  '5. With Callbacks (Expand: $_expandCount, Collapse: $_collapseCount)',
               child: SeeMoreWidget(
                 _longText,
                 maxCharacters: 100,
@@ -319,8 +320,8 @@ class _ExamplePageState extends State<ExamplePage> {
                 TextSpan(children: [
                   const TextSpan(text: 'Welcome to '),
                   const WidgetSpan(
-                    child: Icon(Icons.flutter_dash,
-                        size: 18, color: Colors.blue),
+                    child:
+                        Icon(Icons.flutter_dash, size: 18, color: Colors.blue),
                   ),
                   const TextSpan(
                     text: ' Flutter',
@@ -334,8 +335,8 @@ class _ExamplePageState extends State<ExamplePage> {
                       decoration: TextDecoration.underline,
                     ),
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () => _showSnack(
-                          context, 'Recognizer on "here" still works after trim'),
+                      ..onTap = () => _showSnack(context,
+                          'Recognizer on "here" still works after trim'),
                   ),
                   const TextSpan(
                     text:
@@ -360,6 +361,34 @@ class _ExamplePageState extends State<ExamplePage> {
               ),
             ),
 
+            // 19b. annotations (v2.2) — hashtags, mentions & custom patterns
+            _buildSection(
+              title: '21. Annotations (hashtags, mentions & custom)',
+              child: SeeMoreWidget(
+                r'Loved #flutter at the @flutterdev talk — see https://flutter.dev '
+                r'and watch $GOOG. Tap any highlight!',
+                linkify: true,
+                onLinkTap: (url) => _showSnack(context, 'URL: $url'),
+                annotations: [
+                  SeeMoreAnnotation.hashtag(
+                    onTap: (tag) => _showSnack(context, 'Hashtag: $tag'),
+                  ),
+                  SeeMoreAnnotation.mention(
+                    onTap: (m) => _showSnack(context, 'Mention: $m'),
+                  ),
+                  SeeMoreAnnotation(
+                    pattern: RegExp(r'\$[A-Z]+'),
+                    style: const TextStyle(
+                      color: Colors.deepPurple,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onTap: (t) => _showSnack(context, 'Ticker: $t'),
+                  ),
+                ],
+                maxCharacters: 140,
+              ),
+            ),
+
             // 20. selectable (v2.1) — long-press to select & copy
             _buildSection(
               title: '20. Selectable Text (long-press to select & copy)',
@@ -381,7 +410,8 @@ class _ExamplePageState extends State<ExamplePage> {
                     children: [
                       const CircleAvatar(
                         backgroundColor: Colors.deepPurple,
-                        child: Text('JD', style: TextStyle(color: Colors.white)),
+                        child:
+                            Text('JD', style: TextStyle(color: Colors.white)),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -393,7 +423,8 @@ class _ExamplePageState extends State<ExamplePage> {
                           ),
                           Text(
                             '2 hours ago',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 12),
                           ),
                         ],
                       ),

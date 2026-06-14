@@ -187,30 +187,27 @@ abstract class _SpanUtils {
     return plainText.length;
   }
 
-  /// Returns a new span tree where every substring matching [pattern] in a
-  /// [TextSpan]'s text becomes its own [TextSpan] styled with [linkStyle]
-  /// and wired to a [TapGestureRecognizer] that calls [onTap] with the
-  /// matched URL.
+  /// Returns a new span tree where every substring matching one of
+  /// [annotations] becomes its own styled, tappable [TextSpan].
   ///
+  /// When several annotations match overlapping text, the match that starts
+  /// earliest wins; ties are resolved by the annotation's order in the list.
   /// Every recognizer created is appended to [recognizerSink] so the caller
   /// can dispose them on unmount. Non-[TextSpan] elements (e.g. [WidgetSpan])
   /// are passed through unchanged.
-  static InlineSpan linkify(
+  static InlineSpan annotate(
     InlineSpan root, {
-    required RegExp pattern,
-    required TextStyle linkStyle,
-    required void Function(String url)? onTap,
+    required List<_ResolvedAnnotation> annotations,
     required List<TapGestureRecognizer> recognizerSink,
   }) {
-    if (root is! TextSpan) return root;
+    if (annotations.isEmpty || root is! TextSpan) return root;
 
-    // Only rewrite this span when its own text contains a URL match. When
-    // there's no match, leave [text] inline on the span so its original
-    // style/recognizer continue to apply to that exact text run — avoids
-    // pushing the text into a child where it would lose direct-style queries.
+    // Only rewrite this span when its own text contains a match. When there's
+    // no match, leave [text] inline on the span so its original style /
+    // recognizer continue to apply to that exact run.
     final hasMatchInText = root.text != null &&
         root.text!.isNotEmpty &&
-        pattern.firstMatch(root.text!) != null;
+        annotations.any((a) => a.pattern.hasMatch(root.text!));
 
     String? newText = root.text;
     List<InlineSpan>? newChildren;
@@ -218,11 +215,9 @@ abstract class _SpanUtils {
     if (hasMatchInText) {
       newText = null;
       newChildren = <InlineSpan>[];
-      _splitTextOnPattern(
+      _splitTextOnAnnotations(
         root.text!,
-        pattern: pattern,
-        linkStyle: linkStyle,
-        onTap: onTap,
+        annotations: annotations,
         recognizerSink: recognizerSink,
         out: newChildren,
       );
@@ -231,11 +226,9 @@ abstract class _SpanUtils {
     if (root.children != null) {
       newChildren ??= <InlineSpan>[];
       for (final child in root.children!) {
-        newChildren.add(linkify(
+        newChildren.add(annotate(
           child,
-          pattern: pattern,
-          linkStyle: linkStyle,
-          onTap: onTap,
+          annotations: annotations,
           recognizerSink: recognizerSink,
         ));
       }
@@ -260,52 +253,56 @@ abstract class _SpanUtils {
   /// NOT part of the intended URL (e.g. "visit https://example.com.").
   static final RegExp _urlTrailingTrim = RegExp(r'[.,;:!?)\]\}>]+$');
 
-  static void _splitTextOnPattern(
+  static void _splitTextOnAnnotations(
     String text, {
-    required RegExp pattern,
-    required TextStyle linkStyle,
-    required void Function(String url)? onTap,
+    required List<_ResolvedAnnotation> annotations,
     required List<TapGestureRecognizer> recognizerSink,
     required List<InlineSpan> out,
   }) {
     if (text.isEmpty) return;
+
+    // Collect every match across all annotations.
+    final matches = <_AnnMatch>[];
+    for (var ai = 0; ai < annotations.length; ai++) {
+      final ann = annotations[ai];
+      for (final m in ann.pattern.allMatches(text)) {
+        // Skip zero-width matches (e.g. RegExp('') or `\b`) — they would
+        // otherwise create one recognizer per character.
+        if (m.end <= m.start) continue;
+        var end = m.end;
+        if (ann.trimTrailing) {
+          // Strip trailing sentence punctuation the regex greedily ate
+          // (e.g. "https://example.com." → "https://example.com").
+          final raw = text.substring(m.start, end);
+          final trailing = _urlTrailingTrim.firstMatch(raw);
+          if (trailing != null && trailing.start == 0) continue; // all punct.
+          if (trailing != null) end = m.start + trailing.start;
+        }
+        matches.add(_AnnMatch(m.start, end, ai));
+      }
+    }
+    // Earliest start wins; ties broken by annotation order.
+    matches.sort((a, b) =>
+        a.start != b.start ? a.start - b.start : a.annIndex - b.annIndex);
+
     var cursor = 0;
-    for (final match in pattern.allMatches(text)) {
-      // Skip zero-width matches (e.g. patterns like RegExp('') or `\b`).
-      // Without this guard, a zero-width match per position would create
-      // one TapGestureRecognizer per character and never advance the cursor.
-      if (match.end <= match.start) continue;
-      // Skip a match that overlaps content already emitted (defensive — can
-      // happen if a user-supplied pattern returns out-of-order matches).
-      if (match.start < cursor) continue;
-
-      // Strip trailing sentence punctuation that the regex greedily ate
-      // (e.g. "https://example.com." → "https://example.com", leaving "."
-      // as plain text after the link).
-      var matchEnd = match.end;
-      final raw = text.substring(match.start, matchEnd);
-      final trailing = _urlTrailingTrim.firstMatch(raw);
-      if (trailing != null && trailing.start > 0) {
-        matchEnd = match.start + trailing.start;
-      } else if (trailing != null && trailing.start == 0) {
-        // Whole match is punctuation — skip as not a URL.
-        continue;
+    for (final m in matches) {
+      if (m.start < cursor) continue; // overlaps content already emitted.
+      if (m.start > cursor) {
+        out.add(TextSpan(text: text.substring(cursor, m.start)));
       }
-
-      if (match.start > cursor) {
-        out.add(TextSpan(text: text.substring(cursor, match.start)));
-      }
-      final url = text.substring(match.start, matchEnd);
+      final ann = annotations[m.annIndex];
+      final matched = text.substring(m.start, m.end);
       final recognizer = TapGestureRecognizer()
-        ..onTap = () => onTap?.call(url);
+        ..onTap = () => ann.onTap(matched);
       recognizerSink.add(recognizer);
       out.add(TextSpan(
-        text: url,
-        style: linkStyle,
+        text: matched,
+        style: ann.style,
         recognizer: recognizer,
-        semanticsLabel: url,
+        semanticsLabel: matched,
       ));
-      cursor = matchEnd;
+      cursor = m.end;
     }
     if (cursor < text.length) {
       out.add(TextSpan(text: text.substring(cursor)));
@@ -342,4 +339,26 @@ class _TrimRightResult {
   _TrimRightResult({required this.span, required this.stop});
   final InlineSpan? span;
   final bool stop;
+}
+
+/// Internal, fully-resolved annotation passed to [_SpanUtils.annotate]:
+/// style defaulted and [onTap] wired to a non-null forwarder.
+class _ResolvedAnnotation {
+  const _ResolvedAnnotation({
+    required this.pattern,
+    required this.style,
+    required this.onTap,
+    required this.trimTrailing,
+  });
+  final RegExp pattern;
+  final TextStyle style;
+  final void Function(String match) onTap;
+  final bool trimTrailing;
+}
+
+class _AnnMatch {
+  const _AnnMatch(this.start, this.end, this.annIndex);
+  final int start;
+  final int end;
+  final int annIndex;
 }

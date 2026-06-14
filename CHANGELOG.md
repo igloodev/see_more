@@ -1,3 +1,17 @@
+## 2.2.0
+
+* **Hashtag / mention / custom annotations.** New `annotations` parameter takes
+  a list of `SeeMoreAnnotation`s — auto-detect and style any `RegExp` pattern,
+  each independently tappable. Ships `SeeMoreAnnotation.hashtag`,
+  `.mention`, and `.url` factories with sensible defaults.
+* Annotations compose with `linkify` (detected URLs win ties), are preserved
+  across truncation, and read the latest `onTap` at tap time (no recognizer
+  churn on rebuild). Internally generalizes the URL linkify engine.
+* Added pubspec `topics` and `repository` / `issue_tracker`, and shields badges
+  in the README.
+* All additive and backward-compatible — existing `linkify` / `urlPattern` /
+  `linkStyle` / `onLinkTap` usage is unchanged.
+
 ## 2.1.1
 
 * Shortened `pubspec.yaml` description to fit pub.dev's 60–180 character

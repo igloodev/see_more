@@ -12,7 +12,8 @@ void main() {
 
     test('throws AssertionError for zero maxCharacters in character mode', () {
       expect(
-        () => SeeMoreWidget('text', trimMode: TrimMode.character, maxCharacters: 0),
+        () => SeeMoreWidget('text',
+            trimMode: TrimMode.character, maxCharacters: 0),
         throwsAssertionError,
       );
     });
@@ -31,7 +32,9 @@ void main() {
       );
     });
 
-    test('throws AssertionError when fadeHeight is zero and showFadeEffect is true', () {
+    test(
+        'throws AssertionError when fadeHeight is zero and showFadeEffect is true',
+        () {
       expect(
         () => SeeMoreWidget('text', showFadeEffect: true, fadeHeight: 0),
         throwsAssertionError,
@@ -61,7 +64,8 @@ void main() {
   });
 
   group('SeeMoreWidget edge cases', () {
-    testWidgets('line mode shows no button for text within maxLines', (tester) async {
+    testWidgets('line mode shows no button for text within maxLines',
+        (tester) async {
       const shortMultiline = 'Just one line of text.';
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -80,7 +84,8 @@ void main() {
       expect(anyRichTextContains(tester, shortMultiline), isTrue);
     });
 
-    testWidgets('trimAtWordBoundary in line mode does not cut mid-word', (tester) async {
+    testWidgets('trimAtWordBoundary in line mode does not cut mid-word',
+        (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SizedBox(
@@ -102,8 +107,10 @@ void main() {
       );
 
       if (collapsed.isNotEmpty) {
-        final textPart =
-            collapsed.replaceAll('... See More', '').replaceAll('...', '').trim();
+        final textPart = collapsed
+            .replaceAll('... See More', '')
+            .replaceAll('...', '')
+            .trim();
         if (textPart.isNotEmpty) {
           final lastWord = textPart.split(RegExp(r'\s+')).last;
           expect(longText.contains(lastWord), isTrue);
@@ -111,29 +118,35 @@ void main() {
       }
     });
 
-    testWidgets('Semantics label shows expandText when collapsed', (tester) async {
+    testWidgets('Semantics label shows expandText when collapsed',
+        (tester) async {
       await tester.pumpWidget(buildWidget(expandText: 'Read More'));
 
       final semantics = tester.widget<Semantics>(
-        find.descendant(
-          of: find.byType(SeeMoreWidget),
-          matching: find.byType(Semantics),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(SeeMoreWidget),
+              matching: find.byType(Semantics),
+            )
+            .first,
       );
       expect(semantics.properties.label, 'Read More');
     });
 
-    testWidgets('Semantics label shows collapseText when expanded', (tester) async {
+    testWidgets('Semantics label shows collapseText when expanded',
+        (tester) async {
       await tester.pumpWidget(buildWidget(
         collapseText: 'Read Less',
         initiallyExpanded: true,
       ));
 
       final semantics = tester.widget<Semantics>(
-        find.descendant(
-          of: find.byType(SeeMoreWidget),
-          matching: find.byType(Semantics),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(SeeMoreWidget),
+              matching: find.byType(Semantics),
+            )
+            .first,
       );
       expect(semantics.properties.label, 'Read Less');
     });

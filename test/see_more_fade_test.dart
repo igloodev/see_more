@@ -24,7 +24,8 @@ void main() {
       final containers = tester.widgetList<Container>(find.byType(Container));
       final hasGradient = containers.any((c) {
         final decoration = c.decoration;
-        return decoration is BoxDecoration && decoration.gradient is LinearGradient;
+        return decoration is BoxDecoration &&
+            decoration.gradient is LinearGradient;
       });
 
       expect(hasGradient, isFalse);
@@ -84,13 +85,15 @@ void main() {
       final containers = tester.widgetList<Container>(find.byType(Container));
       final hasGradient = containers.any((c) {
         final decoration = c.decoration;
-        return decoration is BoxDecoration && decoration.gradient is LinearGradient;
+        return decoration is BoxDecoration &&
+            decoration.gradient is LinearGradient;
       });
 
       expect(hasGradient, isFalse);
     });
 
-    testWidgets('custom fadeHeight is applied to gradient container', (tester) async {
+    testWidgets('custom fadeHeight is applied to gradient container',
+        (tester) async {
       const customHeight = 90.0;
       await tester.pumpWidget(buildWidget(
         showFadeEffect: true,
@@ -108,7 +111,8 @@ void main() {
       expect(fadeContainer.constraints?.maxHeight, customHeight);
     });
 
-    testWidgets('expandButtonSpacing is applied as top padding in fade mode', (tester) async {
+    testWidgets('expandButtonSpacing is applied as top padding in fade mode',
+        (tester) async {
       const spacing = 16.0;
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
